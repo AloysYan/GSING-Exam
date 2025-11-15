@@ -6,13 +6,13 @@
 '''
 # 技术解析：使用哈希表存储已经遍历过的数字及其索引，遍历数组时检查当前数字的补数是否在哈希表中。
 def two_sum(nums, target):
-    num_to_index = {}
-    for i, num in enumerate(nums):
-        complement = target - num
-        if complement in num_to_index:
-            return [num_to_index[complement], i]
-        num_to_index[num] = i
-    return []
+    num_to_index = {}                               # 创建一个字典，用于存储数字及其索引
+    for i, num in enumerate(nums):             # 遍历数组，i为索引，num为当前数字
+        complement = target - num                   # 计算当前数字的补数
+        if complement in num_to_index:              # 如果补数在字典中，则返回补数和当前数字的索引
+            return [num_to_index[complement], i]    # 返回补数和当前数字的索引
+        num_to_index[num] = i                       # 将当前数字及其索引存入字典
+    return []                                       # 如果未找到，则返回空列表
 
 # 示例 1
 nums1 = [2, 7, 11, 15]

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from collections import defaultdict
-import time
+
 
 class PatternRecognizer:
     """基于颜色和形状特征的图案识别器"""
