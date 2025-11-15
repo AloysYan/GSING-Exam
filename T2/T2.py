@@ -146,9 +146,9 @@ def main():
         return
     
     # 设置摄像头参数
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+    cap.set(cv2.CAP_PROP_FPS, 60)
     
     recognizer = PatternRecognizer()
     
@@ -257,10 +257,10 @@ def main():
         if key == ord('q'):
             break
     
-    # 释放资源
+    # 释放资源，关闭摄像头窗口
     cap.release()
     cv2.destroyAllWindows()
 
-
+# 入口保护
 if __name__ == "__main__":
     main()
