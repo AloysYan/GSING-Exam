@@ -2,38 +2,38 @@
   "filename": "image1.png",
   "detections": [
     {
-      "cx": 86,
+      "cx": 85,
       "cy": 349,
-      "size_px": 36,
-      "angle_deg": 29.47589111328125,
+      "size_px": 31,
+      "angle_deg": 29,
       "color": "red"
     },
     {
       "cx": 98,
       "cy": 239,
-      "size_px": 55,
-      "angle_deg": 30.379125595092773,
+      "size_px": 48,
+      "angle_deg": 30,
       "color": "red"
     },
     {
       "cx": 139,
       "cy": 130,
-      "size_px": 86,
-      "angle_deg": 59.931419372558594,
+      "size_px": 82,
+      "angle_deg": 60,
       "color": "red"
     },
     {
       "cx": 324,
-      "cy": 62,
-      "size_px": 46,
-      "angle_deg": 90.0,
+      "cy": 63,
+      "size_px": 40,
+      "angle_deg": 90,
       "color": "red"
     },
     {
       "cx": 476,
       "cy": 58,
-      "size_px": 67,
-      "angle_deg": 59.85861587524414,
+      "size_px": 61,
+      "angle_deg": 60,
       "color": "green"
     }
   ],
