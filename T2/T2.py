@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from collections import defaultdict
 
-
 class PatternRecognizer:
     """基于颜色和形状特征的图案识别器"""
     
@@ -13,8 +12,8 @@ class PatternRecognizer:
         self.food_upper = np.array([85, 255, 255])
         
         # 工具（灰色）
-        self.tools_lower = np.array([0, 0, 80])
-        self.tools_upper = np.array([180, 50, 200])
+        self.tools_lower = np.array([0, 0, 100])
+        self.tools_upper = np.array([180, 30, 160])
         
         # 仪器（蓝色）
         self.instruments_lower = np.array([100, 50, 50])
@@ -55,11 +54,11 @@ class PatternRecognizer:
         
         if len(contours) == 0:
             return features
-        
+        # 筛选轮廓
         valid_contours = [c for c in contours if cv2.contourArea(c) > min_area]
         if not valid_contours:
             return features
-        
+        # 计算轮廓数量和平均面积
         features['contour_count'] = len(valid_contours)
         areas = [cv2.contourArea(c) for c in valid_contours]
         features['avg_area'] = np.mean(areas)
@@ -110,10 +109,10 @@ class PatternRecognizer:
         }
         
         pattern_names = {
-            'food': '食品',
-            'tools': '工具',
-            'instruments': '仪器',
-            'medicine': '药品'
+            'food': 'food',
+            'tools': 'tools',
+            'instruments': 'instruments',
+            'medicine': 'medicine'
         }
         
         pattern_colors = {
@@ -153,7 +152,7 @@ def main():
     recognizer = PatternRecognizer()
     
     # 目标区域参数
-    roi_size = 200
+    roi_size = 400
     
     # 平滑识别结果
     detection_buffer = []
