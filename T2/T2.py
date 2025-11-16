@@ -6,7 +6,7 @@ class PatternRecognizer:
     
     def __init__(self):
         # 定义四种图案的颜色范围（HSV）
-        # 食品（绿色）
+        # 食品（绿色） 需要调宽
         self.food_lower = np.array([35, 40, 40])
         self.food_upper = np.array([85, 255, 255])
         
