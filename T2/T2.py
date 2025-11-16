@@ -6,13 +6,13 @@ class PatternRecognizer:
     
     def __init__(self):
         # 定义四种图案的颜色范围（HSV）
-        # 食品（绿色） 需要调宽
-        self.food_lower = np.array([35, 40, 40])
-        self.food_upper = np.array([85, 255, 255])
+        # 食品（绿色）
+        self.food_lower = np.array([25, 30, 30])
+        self.food_upper = np.array([95, 255, 255])
         
         # 工具（灰色）
-        self.tools_lower = np.array([0, 0, 100])
-        self.tools_upper = np.array([180, 30, 160])
+        self.tools_lower = np.array([0, 0, 110])
+        self.tools_upper = np.array([180, 25, 150])
         
         # 仪器（蓝色）
         self.instruments_lower = np.array([100, 50, 50])
@@ -23,7 +23,6 @@ class PatternRecognizer:
         self.medicine_upper = np.array([10, 255, 255])
         self.medicine_lower2 = np.array([170, 100, 100])
         self.medicine_upper2 = np.array([180, 255, 255])
-        
         
     def get_mask(self, hsv_image):
         """获取包含有效颜色的掩码"""
@@ -49,10 +48,12 @@ class PatternRecognizer:
         
         if len(contours) == 0:
             return features
-        # 筛选轮廓
+        
+        # 筛选轮廓（滤波）
         valid_contours = [c for c in contours if cv2.contourArea(c) > min_area]
         if not valid_contours:
             return features
+        
         # 计算轮廓数量和平均面积
         features['contour_count'] = len(valid_contours)
         areas = [cv2.contourArea(c) for c in valid_contours]
@@ -62,7 +63,7 @@ class PatternRecognizer:
         largest = max(valid_contours, key=cv2.contourArea)
         features['largest_contour'] = largest
         
-        # 计算重心
+        # 计算中心点
         M = cv2.moments(largest)
         if M['m00'] > 0:
             cx = int(M['m10'] / M['m00'])
@@ -128,6 +129,7 @@ class PatternRecognizer:
 
 
 def main():
+    # 初始化摄像头
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("无法打开摄像头")
@@ -138,46 +140,49 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
     cap.set(cv2.CAP_PROP_FPS, 60)
     
+    # 初始化图案识别器
     recognizer = PatternRecognizer()
     
     # 目标区域参数
     roi_size = 400
     
-    # 置信度阈值
-    confidence_threshold = 2.0
+    # 标准分数阈值
+    standard_score = 1.5
     
     while True:
+        # 读取帧
         ret, frame = cap.read()
         if not ret:
+            # 如果读取失败，则退出循环
             break
         
         # 获取图像尺寸
-        height, width, _ = frame.shape
-        center_x, center_y = width // 2, height // 2
+        height, width, _ = frame.shape    # 获取图像高度和宽度
+        center_x, center_y = width // 2, height // 2    # 计算中心点
         
         # 定义ROI区域
-        roi_x1 = center_x - roi_size // 2
-        roi_y1 = center_y - roi_size // 2
-        roi_x2 = center_x + roi_size // 2
-        roi_y2 = center_y + roi_size // 2
+        roi_x1 = center_x - roi_size // 2   # 计算ROI区域左上角坐标
+        roi_y1 = center_y - roi_size // 2   # 计算ROI区域左上角坐标
+        roi_x2 = center_x + roi_size // 2   # 计算ROI区域右下角坐标
+        roi_y2 = center_y + roi_size // 2   # 计算ROI区域右下角坐标
         
         # 创建ROI掩码
         roi_mask = np.zeros((height, width), dtype=np.uint8)
         cv2.rectangle(roi_mask, (roi_x1, roi_y1), (roi_x2, roi_y2), 255, -1)
         
-        # ✅ 识别区域内的图案
+        # 识别区域内的图案
         pattern, score, pattern_name, pattern_color = recognizer.recognize_pattern(frame, roi_mask)
         
-        # ✅ 判断是否检测到方形（基于分数）
-        square_detected = score > confidence_threshold
+        # 判断是否检测到方形（基于分数）
+        square_detected = score > standard_score
         
-        # ✅ 获取检测到的物体位置（从识别结果中获取）
+        # 获取检测到的物体位置（从识别结果中获取）
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         mask_food, mask_tools, mask_instruments, mask_medicine = recognizer.get_mask(hsv_frame)
         roi_food = cv2.bitwise_and(mask_food, mask_food, mask=roi_mask)
         features = recognizer.analyze_contours(roi_food, 200)
         
-        # ========== 绘制基础要求的显示信息 ==========
+        # 绘制基础要求的显示信息
         # 状态行1：检测状态
         status_text = "STATUS: Square IN Target Zone" if square_detected else "STATUS: Square IN Target Zone"
         status_color = (0, 255, 0) if square_detected else (0, 0, 255)
@@ -199,36 +204,36 @@ def main():
             detection_color = (0, 0, 255)
         cv2.putText(frame, detection_text, (10, 100),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, detection_color, 2)
-        
-        # ========== 绘制进阶要求的显示信息 ==========
+
+        # 绘制进阶要求的显示信息
         if square_detected:
-            # 显示识别的物品名称
+            # 状态行4：显示识别的物品名称
             cv2.putText(frame, f"Object: {pattern_name}", (10, 135),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, pattern_color, 2)
             
-            # 显示面积信息
+            # 状态行5：显示面积信息
             if features['avg_area'] > 0:
                 cv2.putText(frame, f"Square Area: {int(features['avg_area'])} pixels", (10, 170),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
             
-            # 显示位置信息
+            # 状态行6：显示位置信息
             if features['centroid']:
                 pos_x, pos_y = features['centroid']
                 cv2.putText(frame, f"Position: ({pos_x}, {pos_y})", (10, 205),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
         
-        # 绘制ROI框
+        # 绘制目标区域框
         if square_detected:
             cv2.rectangle(frame, (roi_x1, roi_y1), (roi_x2, roi_y2), pattern_color, 3)
         else:
             cv2.rectangle(frame, (roi_x1, roi_y1), (roi_x2, roi_y2), (0, 255, 0), 2)
         
         # 显示帮助信息
-        cv2.putText(frame, "Press 'q' to quit", (10, height - 50),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+        cv2.putText(frame, "Press 'q' to quit", (10, height-10),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 200, 200), 2)
         
         # 展示实时图像
-        cv2.imshow("Enhanced Square Detection System", frame)
+        cv2.imshow("Detection Window", frame)
         
         # 按键处理
         key = cv2.waitKey(1) & 0xFF
