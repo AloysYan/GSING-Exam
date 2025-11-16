@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from collections import defaultdict
 
 class PatternRecognizer:
     """基于颜色和形状特征的图案识别器"""
@@ -25,9 +24,6 @@ class PatternRecognizer:
         self.medicine_lower2 = np.array([170, 100, 100])
         self.medicine_upper2 = np.array([180, 255, 255])
         
-        # 识别历史用于平滑结果
-        self.detection_history = defaultdict(list)
-        self.history_size = 5
         
     def get_mask(self, hsv_image):
         """获取包含有效颜色的掩码"""
@@ -47,7 +43,6 @@ class PatternRecognizer:
         features = {
             'contour_count': 0,
             'avg_area': 0,
-            'circularity': 0,
             'largest_contour': None,
             'centroid': None
         }
@@ -66,12 +61,6 @@ class PatternRecognizer:
         # 找最大轮廓
         largest = max(valid_contours, key=cv2.contourArea)
         features['largest_contour'] = largest
-        
-        # 计算形状特征
-        area = cv2.contourArea(largest)
-        perimeter = cv2.arcLength(largest, True)
-        if perimeter > 0:
-            features['circularity'] = 4 * np.pi * area / (perimeter * perimeter)
         
         # 计算重心
         M = cv2.moments(largest)
@@ -154,10 +143,8 @@ def main():
     # 目标区域参数
     roi_size = 400
     
-    # 平滑识别结果
-    detection_buffer = []
-    buffer_size = 5
-    confidence_threshold = 2.0  # ✅ 提高阈值，减少误判
+    # 置信度阈值
+    confidence_threshold = 2.0
     
     while True:
         ret, frame = cap.read()
@@ -181,16 +168,8 @@ def main():
         # ✅ 识别区域内的图案
         pattern, score, pattern_name, pattern_color = recognizer.recognize_pattern(frame, roi_mask)
         
-        # 使用缓冲平滑结果
-        detection_buffer.append((pattern, score))
-        if len(detection_buffer) > buffer_size:
-            detection_buffer.pop(0)
-        
-        # 计算平均分数
-        avg_score = np.mean([s for _, s in detection_buffer]) if detection_buffer else 0
-        
-        # ✅ 判断是否检测到方形（基于平均分数）
-        square_detected = avg_score > confidence_threshold
+        # ✅ 判断是否检测到方形（基于分数）
+        square_detected = score > confidence_threshold
         
         # ✅ 获取检测到的物体位置（从识别结果中获取）
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
