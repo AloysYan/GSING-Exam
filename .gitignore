@@ -1,0 +1,13 @@
+# 忽略编译生成的文件
+*.exe
+*.o
+*.dll
+bin/
+obj/
+
+# 忽略 VS Code 的个人配置（可选，如果你两台电脑路径不同，建议忽略）
+.vscode/
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db
